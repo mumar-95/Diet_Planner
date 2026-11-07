@@ -7,5 +7,9 @@ textColor = "#E8F0EC"
 font = "sans serif"
 
 [server]
-headless = false
+# Required for Streamlit Community Cloud health checks (/healthz on :8501).
+headless = true
 enableStaticServing = true
+
+[browser]
+gatherUsageStats = false

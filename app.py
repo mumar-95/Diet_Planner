@@ -97,7 +97,24 @@ def _launch_venv_streamlit(port: int) -> None:
     )
 
 
+def _is_streamlit_cloud() -> bool:
+    """Detect Streamlit Community Cloud / remote hosting."""
+    markers = (
+        "STREAMLIT_SHARING_MODE",
+        "STREAMLIT_CLOUD",
+        "STREAMLIT_RUNTIME_EXISTING_SECRETS_PATH",
+        "STREAMLIT_APP_IDENTITY",
+    )
+    if any(os.getenv(key) for key in markers):
+        return True
+    # Cloud mounts the repo under /mount/src
+    return Path("/mount/src").exists()
+
+
 def _handoff_to_project_venv() -> None:
+    # Never attempt local Windows .venv relaunch on Streamlit Cloud / Linux.
+    if _is_streamlit_cloud() or sys.platform != "win32":
+        return
     if _using_project_venv():
         return
     if not VENV_STREAMLIT.exists():
