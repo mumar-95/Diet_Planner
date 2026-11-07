@@ -43,6 +43,7 @@ htmlcov/
 .coverage
 .coverage.*
 .cache
+assets/food_cache/
 nosetests.xml
 coverage.xml
 *.cover
@@ -218,3 +219,4 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
