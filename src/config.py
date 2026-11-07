@@ -15,7 +15,7 @@ load_dotenv(ROOT_DIR / ".env", override=True)
 
 DEFAULT_EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
 DEFAULT_GROQ_MODEL = "openai/gpt-oss-120b"
-DEFAULT_VISION_MODEL = "meta-llama/llama-4-scout-17b-16e-instruct"
+DEFAULT_VISION_MODEL = "qwen/qwen3.8-27b"
 EMBEDDING_DIMS = 384
 
 OUT_OF_SCOPE_MESSAGE = (

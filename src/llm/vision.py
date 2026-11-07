@@ -6,7 +6,7 @@ import base64
 import mimetypes
 from pathlib import Path
 
-from src.config import get_settings
+from src.config import refresh_settings
 from src.llm.groq_client import get_groq_client
 
 VISION_SYSTEM = (
@@ -28,7 +28,7 @@ def identify_food_from_image_bytes(
     mime_type: str | None = None,
 ) -> str:
     """Return a short food description from an image using Groq vision."""
-    settings = get_settings()
+    settings = refresh_settings()
     client = get_groq_client()
     mime = mime_type or _guess_mime(filename)
     b64 = base64.b64encode(data).decode("ascii")

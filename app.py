@@ -73,6 +73,15 @@ def _port_open(port: int) -> bool:
         return sock.connect_ex(("127.0.0.1", port)) == 0
 
 
+def _open_browser(url: str) -> None:
+    try:
+        import webbrowser
+
+        webbrowser.open(url, new=2)
+    except Exception:
+        pass
+
+
 def _launch_venv_streamlit(port: int) -> None:
     creationflags = 0
     if sys.platform == "win32":
@@ -85,6 +94,8 @@ def _launch_venv_streamlit(port: int) -> None:
             "--server.port",
             str(port),
             "--server.headless",
+            "false",
+            "--browser.gatherUsageStats",
             "false",
         ],
         cwd=str(ROOT),
@@ -126,11 +137,16 @@ def _handoff_to_project_venv() -> None:
                 break
             time.sleep(0.25)
     target = f"http://localhost:{PREFERRED_PORT}"
-    st.title("NourishAI")
     if _port_open(PREFERRED_PORT):
-        st.success("Open the working app on the project Python environment.")
+        # headless=true (Cloud-safe) means bare `streamlit run` won't open a tab —
+        # open the working .venv app ourselves.
+        _open_browser(target)
+        st.title("NourishAI")
+        st.success("Working app opened in your browser.")
         st.link_button("Open working app", target, type="primary")
+        st.caption(f"Use `{target}` — or run `.\\run.bat` next time.")
     else:
+        st.title("NourishAI")
         st.error("Run `.\\run.bat` to start the app.")
     st.stop()
 
@@ -570,50 +586,50 @@ def sidebar(runtime: dict[str, Any]) -> list[str]:
 
     settings = get_settings()
     missing = settings.missing_keys()
-    st.sidebar.markdown("### Setup")
-    if missing:
-        st.sidebar.error("Missing: " + ", ".join(missing))
-    else:
-        st.sidebar.success("Groq + Supabase connected", icon=":material/check_circle:")
-
-    if st.sidebar.button("Check Supabase", width="stretch", key="sb_ping"):
-        try:
-            ping_supabase()
-            st.sidebar.success("Supabase OK")
-        except Exception as exc:  # noqa: BLE001
-            st.sidebar.error(f"Supabase error: {exc}")
-
-    st.sidebar.divider()
-    st.sidebar.markdown("### Knowledge base")
-    if st.sidebar.button(
-        "Index seed knowledge base", type="primary", width="stretch", key="sb_index"
-    ):
-        with st.sidebar.status("Indexing…"):
-            try:
-                results = index_seed_knowledge_base()
-                total = sum(r.get("chunk_count", 0) for r in results)
-                st.sidebar.success(f"Indexed {len(results)} files ({total} chunks).")
-            except Exception as exc:  # noqa: BLE001
-                st.sidebar.error(f"Seed indexing failed: {exc}")
-
-    uploaded = st.sidebar.file_uploader(
-        "Upload nutrition PDF / DOCX / TXT",
-        type=["pdf", "docx", "txt", "md"],
-        key="kb_upload",
-    )
-    if uploaded is not None and st.sidebar.button(
-        "Ingest document", width="stretch", key="sb_ingest"
-    ):
-        with st.sidebar.status(f"Indexing {uploaded.name}…"):
-            try:
-                meta = index_uploaded_file(uploaded.name, uploaded.getvalue())
-                st.sidebar.success(
-                    f"Indexed {meta['file_name']} ({meta['chunk_count']} chunks)."
-                )
-            except Exception as exc:  # noqa: BLE001
-                st.sidebar.error(f"Ingest failed: {exc}")
-
-    st.sidebar.divider()
+#    st.sidebar.markdown("### Setup")
+#    if missing:
+#        st.sidebar.error("Missing: " + ", ".join(missing))
+#    else:
+#        st.sidebar.success("Groq + Supabase connected", icon=":material/check_circle:")
+#
+#    if st.sidebar.button("Check Supabase", width="stretch", key="sb_ping"):
+#        try:
+#            ping_supabase()
+#            st.sidebar.success("Supabase OK")
+#        except Exception as exc:  # noqa: BLE001
+#            st.sidebar.error(f"Supabase error: {exc}")
+#
+#    st.sidebar.divider()
+#    st.sidebar.markdown("### Knowledge base")
+#    if st.sidebar.button(
+#        "Index seed knowledge base", type="primary", width="stretch", key="sb_index"
+#    ):
+#        with st.sidebar.status("Indexing…"):
+#            try:
+#                results = index_seed_knowledge_base()
+#                total = sum(r.get("chunk_count", 0) for r in results)
+#                st.sidebar.success(f"Indexed {len(results)} files ({total} chunks).")
+#            except Exception as exc:  # noqa: BLE001
+#                st.sidebar.error(f"Seed indexing failed: {exc}")
+#
+#    uploaded = st.sidebar.file_uploader(
+#        "Upload nutrition PDF / DOCX / TXT",
+#        type=["pdf", "docx", "txt", "md"],
+#        key="kb_upload",
+#    )
+#    if uploaded is not None and st.sidebar.button(
+#        "Ingest document", width="stretch", key="sb_ingest"
+#    ):
+#        with st.sidebar.status(f"Indexing {uploaded.name}…"):
+#            try:
+#                meta = index_uploaded_file(uploaded.name, uploaded.getvalue())
+#                st.sidebar.success(
+#                    f"Indexed {meta['file_name']} ({meta['chunk_count']} chunks)."
+#                )
+#            except Exception as exc:  # noqa: BLE001
+#                st.sidebar.error(f"Ingest failed: {exc}")
+#
+#    st.sidebar.divider()
     st.sidebar.markdown("### Food photo")
     image = st.sidebar.file_uploader(
         "Upload a food photo",
